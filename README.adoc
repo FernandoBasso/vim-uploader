@@ -1,0 +1,142 @@
+= Vim Uploader
+
+A small script to upload the current buffer/file to a ftp server.
+
+WARNING: Don't use this on production stuff. It is on github just for the sake
+of keeping the code safe in case my hard drive dies. That is why everything
+is in the devel branch for now.
+
+In the future, I plan to add support for other upload methods, like
+sftp, scp and any other that might be useful.
+
+FTP is insecure by nature. I still have not decided on how to make
+the remote hosts config file safer.
+
+
+NOTE: Make sure cURL is installed and is on your PATH environment variable.
+Tested only on Linux so far.
+
+
+This is an example of a conf file:
+
+.~/vim-stuff/remote-hosts.vim
+[source,vim]
+----
+function! FTPConfs(name)
+
+    "
+    " ldir → local project directory.
+    " rdir → remote project directory.
+    "
+
+    "
+    " NOTE: No trailing slash after the project directory.
+    "
+
+    let conf = {
+                \ 'proj1': {
+                    \ 'host': 'ftp.proj1.net',
+                    \ 'user': 'proj1',
+                    \ 'pass': '1234',
+                    \ 'ldir': $HOME . '/develop/proj1',
+                    \ 'rdir': 'public_html'
+                \ },
+                \ 'proj2-blog' : {
+                    \ 'host': 'ftp.proj2.com',
+                    \ 'user': 'proj2',
+                    \ 'pass': 'asdf',
+                    \ 'ldir': $HOME . '/develop/proj2-blog',
+                    \ 'rdir': 'public_html/blog/'
+                \ },
+                \ 'fooproj-admin-area' : {
+                    \ 'host': 'ftp.fooproj.ws',
+                    \ 'user': 'fooprojuser',
+                    \ 'pass': '0123',
+                    \ 'ldir': $HOME . '/develop/fooproj/admin/'
+                    \ 'rdir': 'www-files'
+                \ }
+             \ }
+
+
+    "
+    " TODO: Move this logic to another place so that this file only
+    " knows about the remotes and nothing else.
+    "
+
+    "
+    " If name is an empty string, we don't want to retrieve a single
+    " host config, but all the config names instead, so that the user
+    " can be prompted with a list and select one.
+    "
+    if a:name == ''
+        return keys(conf)
+    endif
+
+
+    "
+    " If name is found in the conf dictionary, return the
+    " whole sub dict.
+    "
+    if has_key(conf, a:name)
+        return conf[a:name]
+    endif
+
+    return 0
+
+endfunction
+----
+
+And then, in `vimrc`, tell the plugin where the remote confs are located:
+
+----
+"
+" Vim-Uploader
+"
+let g:VimUploaderHostsFile = '~/vim-stuff/remote-hosts.vim'
+----
+
+Then, `cd` to the directory where the local project is, and run:
+
+----
+call VimUploaderLoadConfData()
+----
+
+Pick the one you want, edit a file, and run:
+
+----
+call :VUploadFile()
+----
+
+Or with the mappings `<F4>` or `<Leader>up`.
+
+This will upload the file loaded in the current buffer to the correct path
+on the remote host. For instance, if you are in the root directory of your
+local copy of the project, but you are editing the file
+
+    /js/myplugin/file.js
+
+then if you upload it, it will be uploaded to
+
+    <remote-host>/public_html/js/myplugin/file.js
+
+
+Or perhaps
+
+    <remote-host>/public_html/blog/admin/js/myplugin/file.js
+
+...depending on how you configured the remote config for that project:
+
+    ...
+    'rdir': 'public_html'
+    ...
+
+Or
+
+    ...
+    'rdir': 'public_html/blog/admin'
+    ...
+
+
+
+May the force be with you.
+
