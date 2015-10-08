@@ -97,7 +97,7 @@ function! VUploadFile()
     " '/styles', but we need 'styles' so we can concatenate it with
     " 'public_html/', otherwise we would end up with 'public_html//styles'.
     "
-    let path = 'public_html' . dir " dir[1:]
+    let path = g:VimUploader_conf_data['rdir'] . dir
     let file = expand('%')
 
     "
